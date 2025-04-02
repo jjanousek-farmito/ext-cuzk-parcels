@@ -1,55 +1,56 @@
-import { writable, type Updater, type Writable } from "svelte/store";
+
+import { writable, type Writable } from "svelte/store";
 
 /**
  * Creates a persistent Svelte store backed by Chrome's sync storage.
- * Note that each item is limited to 8KB. Use storage.local for larger amounts.
- * https://developer.chrome.com/docs/extensions/reference/api/storage#storage_areas
- *
  * @template T The type of the store's value
  * @param key The key to use in Chrome's storage
  * @param initialValue The initial value of the store
  * @returns A writable Svelte store
  */
 export function persistentStore<T>(key: string, initialValue: T): Writable<T> {
-    const store = writable<T>(initialValue);
+    const store = writable(initialValue);
+    // Ensure each value is updated exactly once in store and in chrome storage
+    let storeValueQueue: T[] = [];
+    let chromeValueQueue: T[] = [];
 
-    function updateChromeStorage(value: T): void {
-        chrome.storage.sync.set({ [key]: value });
+    function watchStore() {
+        store.subscribe((value) => {
+            if (chromeValueQueue.length > 0 && value === chromeValueQueue[0]) {
+                chromeValueQueue.shift();
+                return;
+            }
+
+            storeValueQueue.push(value);
+            chrome.storage.sync.set({ [key]: value });
+        });
     }
 
-    function watchChromeStorage() {
+    function watchChrome() {
         chrome.storage.sync.onChanged.addListener((changes) => {
-            if (Object.hasOwn(changes, key)) {
-                store.set(changes[key].newValue);
+            if (!Object.hasOwn(changes, key)) return;
+
+            const value = changes[key].newValue as T;
+            if (storeValueQueue.length > 0 && value === storeValueQueue[0]) {
+                storeValueQueue.shift();
+                return;
             }
-        });
-    }
 
-    function initStoreFromChromeStorage() {
-        chrome.storage.sync.get(key).then((result) => {
-            if (Object.hasOwn(result, key)) {
-                store.set(result[key]);
-            }
-        });
-    }
-
-    initStoreFromChromeStorage();
-    watchChromeStorage();
-
-    return {
-        set(this: void, value: T): void {
+            chromeValueQueue.push(value);
             store.set(value);
-            updateChromeStorage(value);
-        },
-        update(this: void, updater: Updater<T>): void {
-            return store.update((prev: T): T => {
-                const value = updater(prev);
-                updateChromeStorage(value);
-                return value;
-            });
-        },
-        subscribe: store.subscribe,
-    };
+        });
+    }
+
+    // Initialize the store with the value from Chrome storage
+    chrome.storage.sync.get(key).then((result) => {
+        const value = Object.hasOwn(result, key) ? result[key] : initialValue;
+        chromeValueQueue.push(value);
+        store.set(value);
+        watchStore();
+        watchChrome();
+    });
+
+    return store;
 }
 
 export const count = persistentStore("count", 10);

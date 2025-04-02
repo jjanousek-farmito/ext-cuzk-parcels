@@ -1,7 +1,7 @@
 import { defineManifest } from "@crxjs/vite-plugin";
 import packageJson from "../package.json";
 
-const { version } = packageJson;
+const { version, name, description } = packageJson;
 
 // Convert from Semver (example: 0.1.0-beta6)
 const [major, minor, patch] = version
@@ -10,10 +10,11 @@ const [major, minor, patch] = version
     // split into version parts
     .split(/[.-]/);
 
-export default defineManifest(async () => ({
+
+export default defineManifest(async (env) => ({
     manifest_version: 3,
-    name: "Chrome Extension Svelte Typescript Boilerplate",
-    description: "Boilerplate for Chrome Extension Svelte Typescript project",
+    name: name,
+    description: description,
     version: `${major}.${minor}.${patch}`,
     version_name: version,
     icons: {
