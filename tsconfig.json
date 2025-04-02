@@ -17,6 +17,8 @@
         "moduleDetection": "force"
     },
     "include": ["src/**/*.ts", "src/**/*.js", "src/**/*.svelte"],
+    "exclude": ["src/manifest.config.ts"],
     // https://github.com/vitejs/vite/issues/18139
     "references": [{ "path": "./tsconfig.node.json" }]
+
 }
