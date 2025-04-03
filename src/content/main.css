@@ -1,0 +1,5 @@
+@layer {
+ button {
+  @apply inline-flex cursor-pointer rounded;
+ }
+}

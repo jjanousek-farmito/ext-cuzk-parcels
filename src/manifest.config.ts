@@ -4,7 +4,7 @@ import packageJson from "../package.json";
 const { version, name, description } = packageJson;
 
 // Convert from Semver (example: 0.1.0-beta6)
-const [major, minor, patch] = version
+const [major, minor, patch, label = '0'] = version
     // can only contain digits, dots, or dash
     .replace(/[^\d.-]+/g, "")
     // split into version parts
@@ -15,7 +15,7 @@ export default defineManifest(async (env) => ({
     manifest_version: 3,
     name: name,
     description: description,
-    version: `${major}.${minor}.${patch}`,
+    version: `${major}.${minor}.${patch}.${label}`,
     version_name: version,
     icons: {
         "16": "src/assets/icons/icon-16.png",
@@ -25,9 +25,41 @@ export default defineManifest(async (env) => ({
     },
     content_scripts: [
         {
-            matches: ["https://*/*"],
-            js: ["src/content/index.ts"],
+            matches: [
+                "https://crm.cmzf.cz/*",
+                "https://test.crm.cmzf.cz/*",
+                "https://nahlizenidokn.cuzk.gov.cz/*"
+            ],
+            js: [
+                "src/content/index.ts"
+            ],
         },
+        {
+            matches: [
+                "https://crm.cmzf.cz/purchase/opportunity/*",
+                "https://test.crm.cmzf.cz/purchase/opportunity/*"
+            ],
+            js: [
+                "src/content/crm/auth.ts",
+                "src/content/crm/content.ts"
+            ],
+        },
+        {
+            matches: [
+                "https://nahlizenidokn.cuzk.gov.cz/*"
+            ],
+            js: [
+                "src/content/cuzk/auth.ts"
+            ]
+        },
+        {
+            matches: [
+                "https://nahlizenidokn.cuzk.gov.cz/ZobrazObjekt.aspx?*"
+            ],
+            js: [
+                "src/content/cuzk/content.ts"
+            ],
+        }
     ],
     background: {
         service_worker: "src/background/index.ts",
