@@ -14,11 +14,22 @@
         "allowJs": true,
         "checkJs": true,
         "isolatedModules": true,
-        "moduleDetection": "force"
+        "moduleDetection": "force",
+        "baseUrl": ".",
     },
-    "include": ["src/**/*.ts", "src/**/*.js", "src/**/*.svelte"],
-    "exclude": ["src/manifest.config.ts"],
+    "include": [
+        "src/**/*.ts",
+        "src/**/*.js",
+        "src/lib/components/ui/**/*.ts",
+        "src/**/*.svelte"
+    ],
     // https://github.com/vitejs/vite/issues/18139
-    "references": [{ "path": "./tsconfig.node.json" }]
-
+    "references": [
+        {
+            "path": "./tsconfig.node.json"
+        },
+        {
+            "path": "./tsconfig.app.json"
+        },
+    ]
 }
