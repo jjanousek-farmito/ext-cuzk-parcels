@@ -1,4 +1,6 @@
 @import 'tailwindcss';
+
+@config '../tailwind.config.ts';
 /* @import './tailwindcss-animate.css'; */
 
 @custom-variant dark (&:where(.dark, .dark *));
@@ -12,6 +14,7 @@
   color utility to any element that depends on these defaults.
 */
 @layer base {
+
   *,
   ::after,
   ::before,
@@ -144,24 +147,30 @@
     from {
       height: 0;
     }
+
     to {
       height: var(--bits-accordion-content-height);
     }
   }
+
   @keyframes accordion-up {
     from {
       height: var(--bits-accordion-content-height);
     }
+
     to {
       height: 0;
     }
   }
+
   @keyframes caret-blink {
+
     0%,
     70%,
     100% {
       opacity: 1;
     }
+
     20%,
     50% {
       opacity: 0;
@@ -173,11 +182,16 @@
   * {
     @apply box-border;
   }
+
   body {
     @apply bg-background text-foreground;
   }
 
   button {
-    @apply inline-flex cursor-pointer !rounded;
+    @apply inline-flex cursor-pointer;
+  }
+
+  button.\!rounded-full {
+    border-radius: calc(infinity * 1px) !important;
   }
 }

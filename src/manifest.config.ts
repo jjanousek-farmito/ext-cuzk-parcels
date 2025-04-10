@@ -23,24 +23,14 @@ export default defineManifest(async (env) => ({
         "48": "src/assets/icons/icon-48.png",
         "128": "src/assets/icons/icon-128.png",
     },
+    host_permissions: ["<all_urls>"],
     content_scripts: [
-        {
-            matches: [
-                "https://crm.cmzf.cz/*",
-                "https://test.crm.cmzf.cz/*",
-                "https://nahlizenidokn.cuzk.gov.cz/*"
-            ],
-            js: [
-                "src/content/index.ts"
-            ],
-        },
         {
             matches: [
                 "https://crm.cmzf.cz/purchase/opportunity/*",
                 "https://test.crm.cmzf.cz/purchase/opportunity/*"
             ],
             js: [
-                "src/content/crm/auth.ts",
                 "src/content/crm/content.ts"
             ],
         },
@@ -66,13 +56,9 @@ export default defineManifest(async (env) => ({
     },
     options_ui: {
         page: "src/options/options.html",
-        open_in_tab: false,
-    },
-    side_panel: {
-        default_path: "src/sidepanel/sidepanel.html",
+        open_in_tab: true,
     },
     action: {
-        default_popup: "src/popup/popup.html",
         default_icon: {
             "16": "src/assets/icons/icon-16.png",
             "32": "src/assets/icons/icon-32.png",
@@ -80,5 +66,13 @@ export default defineManifest(async (env) => ({
             "128": "src/assets/icons/icon-128.png",
         },
     },
-    permissions: ["storage", "sidePanel"] as chrome.runtime.ManifestPermissions[],
+    permissions: [
+        "storage",
+        "activeTab",
+        "scripting",
+        "webNavigation",
+        "webRequest",
+        "alarms",
+        "tabs"
+    ] as chrome.runtime.ManifestPermissions[],
 }));

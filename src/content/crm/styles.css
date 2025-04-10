@@ -1,0 +1,25 @@
+@import "tailwindcss";
+
+@layer theme {
+    .table.table-responsive>tbody>tr {
+        @apply px-2 py-1;
+        @apply !align-middle;
+    }
+}
+
+#home tr:hover:not(:first-of-type):not(:last-of-type) {
+    @apply bg-amber-100;
+}
+
+#home .table tr>td:last-child:not(:first-child) {
+    @apply flex gap-1;
+}
+
+#home .table tr>td:nth-of-type(7) {
+    @apply font-bold;
+}
+
+#home .table tr>td:last-child a,
+#home .table tr>td:last-child img {
+    @apply max-w-[20px] max-h-[20px] w-full h-full;
+}

@@ -19,12 +19,14 @@
         "moduleDetection": "force",
         "baseUrl": ".",
         "paths": {
-            "@/*": [ "./src/lib/*" ]
+            "@/*": [ "./src/*" ]
         }
     },
     "include": [
         "src/**/*.ts",
         "src/**/*.js",
+        "src/**/*.svelte.ts",
+        "src/**/*.svelte.js",
         "src/**/*.svelte"
     ]
 }

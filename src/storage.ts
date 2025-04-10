@@ -1,15 +1,19 @@
 
 import { writable, type Writable } from "svelte/store";
+import type { Parcel } from "./model/parcel";
 
 /**
  * Creates a persistent Svelte store backed by Chrome's sync storage.
  * @template T The type of the store's value
  * @param key The key to use in Chrome's storage
  * @param initialValue The initial value of the store
+ * @param chromeStorageType The type of Chrome storage to use (default: "sync")
  * @returns A writable Svelte store
  */
-export function persistentStore<T>(key: string, initialValue: T): Writable<T> {
+export function persistentStore<T>(key: string, initialValue: T, chromeStorageType?: chrome.storage.AreaName): Writable<T> {
     const store = writable(initialValue);
+    chromeStorageType = chromeStorageType || "sync";
+    const chromeStorage = chrome.storage[chromeStorageType] as chrome.storage.StorageArea;
     // Ensure each value is updated exactly once in store and in chrome storage
     let storeValueQueue: T[] = [];
     let chromeValueQueue: T[] = [];
@@ -22,12 +26,12 @@ export function persistentStore<T>(key: string, initialValue: T): Writable<T> {
             }
 
             storeValueQueue.push(value);
-            chrome.storage.sync.set({ [key]: value });
+            chromeStorage.set({ [key]: value });
         });
     }
 
     function watchChrome() {
-        chrome.storage.sync.onChanged.addListener((changes) => {
+        chromeStorage.onChanged.addListener((changes) => {
             if (!Object.hasOwn(changes, key)) return;
 
             const value = changes[key].newValue as T;
@@ -42,7 +46,7 @@ export function persistentStore<T>(key: string, initialValue: T): Writable<T> {
     }
 
     // Initialize the store with the value from Chrome storage
-    chrome.storage.sync.get(key).then((result) => {
+    chromeStorage.get(key).then((result) => {
         const value = Object.hasOwn(result, key) ? result[key] : initialValue;
         chromeValueQueue.push(value);
         store.set(value);
@@ -53,4 +57,18 @@ export function persistentStore<T>(key: string, initialValue: T): Writable<T> {
     return store;
 }
 
-export const count = persistentStore("count", 10);
+export const cuzkLoginStatus = persistentStore("cuzkLogin", false);
+
+type Opportunities = {
+    [opportunityId: string]: Parcel[];
+};
+
+export const opportunities = persistentStore("opportunities", {} as Opportunities, "local");
+
+const defaultConfig = {
+    cuzkAutoSession: true,
+    autoCloseDelay: 3,
+    autoSessionDelay: 600,
+};
+
+export const config = persistentStore("config", defaultConfig, "local");

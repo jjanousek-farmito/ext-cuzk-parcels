@@ -9,10 +9,10 @@ export default {
         $stores: "src/stores",
         $utils: "src/utils",
         $assets: "src/assets",
-        "@/*": "src/lib/*",
+        "@/*": "src/*",
     },
     external: [
-        "src/lib/components/ui/*"
+        "src/components/ui/*"
     ],
 
 };

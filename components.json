@@ -3,17 +3,15 @@
 	"style": "new-york",
 	"tailwind": {
 		"config": "tailwind.config.ts",
-		"css": "src/content/main.css",
-		"baseColor": "slate",
-		"cssVariables": false
+		"css": "src/global.css",
+		"baseColor": "slate"
 	},
 	"aliases": {
-		"components": "src/lib/components",
-		"utils": "@/utils",
-		"ui": "@/registry/new-york-v4/ui",
-		"lib": "@/lib",
-		"hooks": "@/hooks"
+		"components": "src/components",
+		"utils": "src/utils",
+		"ui": "src/registry/new-york-v4/ui",
+		"hooks": "src/hooks"
 	},
-	"iconLibrary": "lucide",
-	"typescript": true
+	"typescript": true,
+	"registry": "https://next.shadcn-svelte.com/registry"
 }

@@ -20,7 +20,8 @@
     "include": [
         "src/**/*.ts",
         "src/**/*.js",
-        "src/lib/components/ui/**/*.ts",
+        "src/**/*.svelte.ts",
+        "src/**/*.svelte.js",
         "src/**/*.svelte"
     ],
     // https://github.com/vitejs/vite/issues/18139
