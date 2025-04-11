@@ -1,7 +1,14 @@
 <script lang="ts">
 	import { onDestroy, onMount } from "svelte";
 
-	import { CheckCircle, AlertTriangle, XCircle, BetweenHorizonalStart, Table, Loader } from "lucide-svelte";
+	import {
+		CheckCircle,
+		AlertTriangle,
+		XCircle,
+		BetweenHorizonalStart,
+		Table,
+		Loader,
+	} from "lucide-svelte";
 
 	import { Button } from "@/components/ui/button";
 	import { Badge } from "@/components/ui/badge";
@@ -15,7 +22,19 @@
 
 	import { cuzkLoginStatus, opportunities } from "@/storage";
 	import { Validity } from "@/model/parcel";
-	import { applyValidationResults, checkParcels, closeCuzkCards, getOpportunityId, getTableRows, insertGroupHeaders, messageToSW, registerParcels, removeGroupHeaders, removeParcelRowHighlight } from "@/content/crm/utils";
+	import {
+		applyValidationResults,
+		checkParcels,
+		closeCuzkCards,
+		getOpportunityId,
+		getTableRows,
+		insertGroupHeaders,
+		messageToSW,
+		registerParcels,
+		removeGroupHeaders,
+		removeParcelRowHighlight,
+		removeValidations,
+	} from "@/content/crm/utils";
 
 	let id = getOpportunityId();
 	let { parcels = [] } = $props();
@@ -37,10 +56,13 @@
 	});
 
 	function handleParcelCheck() {
-		console.log("handleParcelCheck");
-		console.log(parcels);
+		const confirmation = confirm("Spustit kontrolu parcel?");
+		if (!confirmation) {
+			return;
+		}
 
 		removeGroupHeaders();
+		//removeValidations();
 		checkParcels(parcels);
 	}
 
@@ -51,14 +73,12 @@
 		}, 1000);
 		opportunities.update((o) => {
 			o[id] = parcels.map((parcel) => {
-				console.log("parcel", parcel);
 				parcel.validity = null;
 				return parcel;
 			});
 			return o;
 		});
 		setTimeout(() => parcels.map(removeParcelRowHighlight), 500);
-
 	}
 
 	function handleCloseCuzkCards() {
@@ -99,17 +119,24 @@
 		parcels = o[id];
 		if (!initialized) initialized = true;
 
-		if(!parcels) {
+		if (!parcels) {
 			return;
 		}
 
 		applyValidationResults(parcels);
 
-		stats.invalid = parcels.filter((parcel) => parcel.validity === Validity.INVALID).length;
-		stats.unknown = parcels.filter((parcel) => parcel.validity === Validity.UNKNOWN).length;
-		stats.valid = parcels.filter((parcel) => parcel.validity === Validity.VALID).length;
+		stats.invalid = parcels.filter(
+			(parcel) => parcel.validity === Validity.INVALID,
+		).length;
+		stats.unknown = parcels.filter(
+			(parcel) => parcel.validity === Validity.UNKNOWN,
+		).length;
+		stats.valid = parcels.filter(
+			(parcel) => parcel.validity === Validity.VALID,
+		).length;
 
-		hasOpenedParcelTabs = parcels.filter(({ cuzk }) => cuzk?.tabId).length > 0;
+		hasOpenedParcelTabs =
+			parcels.filter(({ cuzk }) => cuzk?.tabId).length > 0;
 
 		// parcels = validateParcels(parcels);
 		// apply validation results to each row
@@ -119,7 +146,9 @@
 	});
 </script>
 
-<div class="relative px-3 py-3 mx-auto mb-4 border rounded-2xl bg-white z-10 shadow-sm dark:bg-gray-800">
+<div
+	class="relative px-3 py-3 mx-auto mb-4 border rounded-2xl bg-white z-10 shadow-sm dark:bg-gray-800"
+>
 	<div class="flex flex-col sm:flex-row items-center gap-4">
 		<div class="flex gap-4 flex-wrap w-full">
 			{#if !$cuzkLoginStatus}
@@ -128,24 +157,42 @@
 				</div>
 			{:else}
 				<div class="flex gap-2 flex-wrap">
-					<Button variant="default" size="sm" disabled={!initialized} onclick={handleParcelCheck}>Kontrola PV</Button>
-					<Button variant="destructive" size="sm" disabled={!hasOpenedParcelTabs} onclick={handleCloseCuzkCards}>Zavřít CUZK karty</Button>
-					<Button variant="warning" size="sm" onclick={handleParcelRegister}>Scan parcel</Button>
-					<div class="flex items-center space-x-2 gap-2 justify-center">
-						<Button variant="outline" size="sm" onclick={handleLVHeaders}>
-							<div class="flex gap-2">
-								{#if showLVHeaders}
-									<Table />
-								{:else}
-									<BetweenHorizonalStart />
-								{/if}
-								{!showLVHeaders ? "rozdělit" : "sloučit"} LV
-							</div>
-						</Button>
-					</div>
+					<Button
+						variant="default"
+						size="sm"
+						disabled={!initialized}
+						onclick={handleParcelCheck}>Kontrola PV</Button
+					>
+					<Button
+						variant="destructive"
+						size="sm"
+						disabled={!hasOpenedParcelTabs}
+						onclick={handleCloseCuzkCards}>Zavřít CUZK karty</Button
+					>
+					<Button
+						variant="warning"
+						size="sm"
+						onclick={handleParcelRegister}>Scan parcel</Button
+					>
+					<Button
+						variant="outline"
+						size="sm"
+						onclick={handleLVHeaders}
+					>
+						<div class="flex gap-2">
+							{#if showLVHeaders}
+								<Table />
+							{:else}
+								<BetweenHorizonalStart />
+							{/if}
+							{!showLVHeaders ? "rozdělit" : "sloučit"} LV
+						</div>
+					</Button>
 				</div>
 				<div class="flex gap-2 flex-wrap ml-auto">
 					<div class="flex gap-2 items-center">
+
+						<p class="m-0">Počet parcel: {getTableRows(true)?.length}</p>
 						<p class="m-0">Ke kontrole: {parcels?.length}</p>
 						<Badge variant="destructive" size="sm">
 							<XCircle class="w-4 h-4 mr-1" />

@@ -9,12 +9,15 @@ export function setRowsId(rows: HTMLTableRowElement[]) {
     }
 }
 
-export function getTableRows(): HTMLTableRowElement[] | [] {
+export function getTableRows(includeRemoved: boolean=false): HTMLTableRowElement[] | [] {
     const table = document.querySelector("form[action$='/update-parcely'] table");
     if (!table) return []
 
+    const includeRemovedSelector = includeRemoved ? "" : ":not([style*='text-decoration: line-through;'])";
+    const parcelsSelector = `tr:not(:first-of-type):not(:last-of-type)${includeRemovedSelector}`;
+
     let rows = Array.from(
-        table.querySelectorAll(`tr:not(:first-of-type):not(:last-of-type):not([style*="text-decoration: line-through;"])`)) as HTMLTableRowElement[];
+        table.querySelectorAll(parcelsSelector)) as HTMLTableRowElement[];
     return rows || [];
 }
 
@@ -141,7 +144,7 @@ export function highlightParcelRow(parcel: Parcel, validity: Validity, detail: s
 
     const warningIcon = document.createElement("i");
     warningIcon.classList.add("fa", "cursor-pointer", highlightIcon);
-    if (detail) warningIcon.title = detail;
+    if (detail) warningIcon.title = "Detail kontrly PV";
     row.querySelector("td:first-of-type")?.appendChild(warningIcon);
 
     row.classList.add("highlighted");
@@ -275,5 +278,11 @@ export function applyValidationResults(parcels: Parcel[]) {
     parcels.forEach((parcel) => {
         const validationReport = validationDetailReport(parcel);
         parcel.validity && highlightParcelRow(parcel, parcel.validity, validationReport);
+    });
+}
+
+export function removeValidations() {
+    messageToSW({
+        type: "crm-remove-validations",
     });
 }

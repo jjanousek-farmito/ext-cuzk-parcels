@@ -9,6 +9,24 @@ Rozšíření pro prohlížeč Chrome, které usnadňuje kontrolu a vyhledáván
     - dokud uživatel nezavře prohlížeč, nevymaže session
     - neukládá žádné osobní údaje
 
+## Load unpacked extensions
+
+[Getting Started Tutorial](https://developer.chrome.com/docs/extensions/get-started/tutorial/hello-world#load-unpacked)
+
+
+1. Stáhněte si poslední verzi rozšíření z repozitáře na GitHubu [zde](https://github.com/jjanousek-farmito/ext-cuzk-parcels/releases)
+    1. Vyberte nejnovější verzi rozšíření podle čísla verze
+    2. Stáhněte si soubor `ext-cuzk-pv.zip`
+3. Rozbalte stažený soubor do libovolného adresáře na vašem počítači.
+    1. Složku si uložte na bezpečné místo, abyste ji mohli později použít.
+5. Otevřete stránku správy rozšíření na adrese `chrome://extensions`.
+6. Povolte režim pro vývojáře kliknutím na přepínač vedle položky `Režim pro vývojáře` v pravém horním rohu.
+7. Klepněte na tlačítko `Load Unpacked` v levém horním rohu.
+8. Vyberte adresář `ext-cuzk-pv` (nebo jiný název, který jste použili při rozbalení) a klikněte na `Select Folder`.
+9. Rozšíření by se mělo nyní načíst a zobrazit na stránce správy rozšíření.
+10. Pokud chcete rozšíření aktualizovat, stačí stáhnout novou verzi a opakovat kroky 3-9.
+11. Složku `ext-cuzk-pv` musíte mít stále na disku, jinak rozšíření nebude fungovat. Pokud ji odstraníte, rozšíření se odinstaluje
+
 ## Development
 
 ```bash
@@ -19,15 +37,6 @@ npm i
 # HMR for extension pages and content scripts
 npm run dev
 ```
-
-### Load unpacked extensions
-
-[Getting Started Tutorial](https://developer.chrome.com/docs/extensions/get-started/tutorial/hello-world#load-unpacked)
-
-1. Open the Extension Management page by navigating to `chrome://extensions`.
-2. Enable Developer Mode by clicking the toggle switch next to `Developer mode` in the top right corner.
-3. Click the `LOAD UNPACKED` button in the top left corner.
-4. Select the `/dist` directory.
 
 ## Build
 

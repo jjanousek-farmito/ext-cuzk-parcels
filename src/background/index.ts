@@ -122,6 +122,25 @@ chrome.runtime.onMessage.addListener(async function (msg, sender, sendResponse) 
 
     }
 
+    if(msg.type = "crm-remove-validations") {
+        const opportunityId = msg.id as string;
+        console.log("[CRM_CUZK]: Removing validations for parcels:", opportunityId);
+
+        opportunities.update((ops) => {
+            const parcels = ops[opportunityId] as Parcel[];
+            parcels.forEach((parcel: Parcel) => {
+                if (parcel.validity) {
+                    parcel.validity = undefined;
+                    parcel.validationDetail = undefined;
+                }
+            })
+            ops[opportunityId] = parcels;
+            console.log("[CRM_CUZK]: Updated parcels:", ops[opportunityId]);
+
+            return ops
+        })
+    }
+
     // close CUZK parcels tabs
     if (msg.type == "crm-close-cuzk-tabs") {
         const opportunityId = msg.id as string;
@@ -144,13 +163,10 @@ chrome.runtime.onMessage.addListener(async function (msg, sender, sendResponse) 
 
     }
 
-    if (msg.type === "storage-log") {
-        console.log("[CRM_CUZK_SW]: Storage opportunities:", await chrome.storage.session.get("opportunities"));
-    }
-
     if (msg.type === "clear-storage-opportunities") {
         await chrome.storage.session.clear();
         await chrome.storage.local.remove(["opportunities"]);
         console.log("[CRM_CUZK_SW]: Storage opportunities cleared");
     }
+
 })
