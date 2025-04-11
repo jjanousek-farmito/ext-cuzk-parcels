@@ -131,11 +131,11 @@ export function highlightParcelRow(parcel: Parcel, validity: Validity, detail: s
     }[validity] ?? Validity.UNKNOWN;
 
     const background = {
-        [Validity.VALID]: "bg-success",
-        [Validity.INVALID]: "bg-danger",
-        [Validity.UNKNOWN]: "bg-warning",
-        [Validity.NOT_FOUND]: "bg-warning",
-    }[validity] ?? "warning";
+        [Validity.VALID]: "bg-success-light",
+        [Validity.UNKNOWN]: "bg-warning-light",
+        [Validity.NOT_FOUND]: "bg-warning-light",
+        [Validity.INVALID]: "bg-danger-light",
+    }[validity] ?? "bg-warning-light";
 
     row?.classList.add(background);
 
@@ -159,8 +159,7 @@ export function removeParcelRowHighlight(parcel: Parcel) {
         return;
     }
     if (row.classList.contains("highlighted")) {
-        row.classList.remove("bg-success", "bg-danger", "bg-warning");
-        row.classList.remove("highlighted");
+        row.classList.remove("highlighted", "bg-success-light", "bg-danger-light", "bg-warning-light");
         const warningIcon = row.querySelector("i.fa");
         if (warningIcon) {
             warningIcon.remove();
@@ -186,6 +185,10 @@ export function validationDetailReport(parcel: Parcel): string {
     const bodyRowSpan = (...cells: any[]): string => tr(cells.map((content) => cell("td", content, 4)).join(""));
     const headerRowSpan = (...cells: any[]): string => th(cells.map((content) => cell("th", content, 4)).join(""));
 
+    console.log("[CRM_CUZK]: Validation detail report:", parcel);
+    console.log("[CRM_CUZK]: Validation detail report:", detail);
+
+
     const header = headerRow("Parcela", "CRM", "CUZK", "Status");
     const crm = parcel.crm;
     const cuzk = parcel.cuzk;
@@ -195,10 +198,25 @@ export function validationDetailReport(parcel: Parcel): string {
         bodyRow("LV", crm.lv, cuzk.lv, detail.lv ? "OK" : "FAIL") +
         bodyRow("Vlastník", crm.owner, owners, detail.owner ? "OK" : "FAIL") +
         bodyRow("Plocha", crm.area, cuzk.area, detail.area ? "OK" : "FAIL") +
-        headerRowSpan("Ostatní zápisy") +
-        detail.otherRecords.map((record: string) => bodyRowSpan(record)).join("") +
-        headerRowSpan("Omezení vlastnického práva") +
-        detail.restrictionsRecords.map((record: string) => bodyRowSpan(record)).join("");
+
+        (cuzk.duplicate ?
+            headerRowSpan("Duplicitní zápis vlastnictví") +
+            bodyRowSpan(cuzk.duplicate ? "<strong>DUPLICITA</strong>" : "")
+            : "") +
+
+        (detail.otherRecords.length > 0 ?
+            headerRowSpan("Ostatní zápisy") +
+            detail.otherRecords.map((record: string) => bodyRowSpan(record)).join("")
+            : "") +
+
+        (detail.restrictionsRecords.length > 0 ?
+            headerRowSpan("Omezení vlastnického práva") +
+            detail.restrictionsRecords.map((record: string) => bodyRowSpan(record)).join("")
+            : "") +
+
+        (cuzk.seal ?
+            headerRowSpan("Plomba") +
+            bodyRowSpan(cuzk.seal) : "");
 
     const tableReport = `<table class="table table-bordered table-striped" >
     <thead>
@@ -208,7 +226,7 @@ export function validationDetailReport(parcel: Parcel): string {
             ${body}
     </tbody>
 </table>
-<a href="${parcel.url}" class="btn btn-primary btn-sm">Otevřít v CUZK</a>`;
+<a href="${parcel.url}" target="_blank" class="btn btn-primary btn-sm">Otevřít v CUZK</a>`;
 
     return tableReport;
 }

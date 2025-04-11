@@ -46,6 +46,8 @@ export function validateParcel(parcel: Parcel): Parcel {
     const areaMatch = compareStrings(parcel.crm.area, parcel.cuzk?.area);
     const parcelNumberMatch = compareStrings(parcel.crm.parcelNumber, parcel.cuzk?.parcelNumber);
     const lvMatch = compareStrings(parcel.crm.lv, parcel.cuzk?.lv);
+    const seal = parcel.cuzk?.seal;
+    const duplicate = parcel.cuzk?.duplicate;
 
     const otherRecords = parcel.cuzk?.otherRecords;
     const excludeRecords = [
@@ -66,6 +68,7 @@ export function validateParcel(parcel: Parcel): Parcel {
         !areaMatch ||
         !lvMatch ||
         !areaMatch ||
+        seal ||
         hasImportantOtherRecords;
 
     const hasOtherRecords =
@@ -87,11 +90,13 @@ export function validateParcel(parcel: Parcel): Parcel {
         area: areaMatch,
         parcelNumber: parcelNumberMatch,
         lv: lvMatch,
+        seal,
         hasOtherRecords,
         hasImportantOtherRecords,
-        // hasProtection,
         hasRestrictions,
-        protectionRecords: parcel.cuzk?.protection || [],
+        duplicate,
+        // hasProtection,
+        // protectionRecords: parcel.cuzk?.protection || [],
         restrictionsRecords: parcel.cuzk?.restrictions || [],
         otherRecords: parcel.cuzk?.otherRecords || [],
     };

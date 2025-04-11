@@ -23,3 +23,15 @@
 #home .table tr>td:last-child img {
     @apply max-w-[20px] max-h-[20px] w-full h-full;
 }
+
+
+.highlighted.bg-success-light {
+    @apply bg-green-100!;
+}
+
+.highlighted.bg-warning-light {
+    @apply bg-yellow-100;
+}
+.highlighted.bg-danger-light {
+    @apply bg-red-300!;
+}

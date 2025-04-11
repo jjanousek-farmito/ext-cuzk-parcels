@@ -28,7 +28,9 @@ export type Parcel = {
         area?: string;
         lv?: string;
         owner?: string;
+        duplicate?: boolean;
         [key: string]: any;
+        seal?: string;
     } | null;
     records?: {
         others: string[]

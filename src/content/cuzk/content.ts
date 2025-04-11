@@ -1,6 +1,6 @@
 console.log("[CRM_CUZK]: CUZK Content script loaded");
 
-function getLandInfo() {
+function getLandInfo(): { parcelNumber: string, area: string, cadastralArea: string, lv: string } | null {
     const table = document.querySelector('table.atributySMapou');
     if (!table) return null;
 
@@ -19,7 +19,7 @@ function getLandInfo() {
     }
 }
 
-function getOwners() {
+function getOwners(): Array<{ owner: string, share: string }> | null {
 
     const table = document.querySelector('table.vlastnici');
     if (!table) return null;
@@ -36,7 +36,19 @@ function getOwners() {
     return owners;
 }
 
-function getProtection() {
+function getOwnerDuplicate(): boolean {
+    //Record has duplicate record if table .vlastnici having in first th row "Duplicitní zápis vlastnictví"
+    const table = document.querySelector('table.vlastnici');
+    if (!table) return false;
+
+    const tableHeader = table.querySelector('th');
+    if (tableHeader && tableHeader.innerText == "Duplicitní zápis vlastnictví") {
+        return true;
+    }
+    return false
+}
+
+function getProtection(): string[] | null {
     // summary="Způsob ochrany nemovitosti"
     const table = document.querySelector('table[summary="Způsob ochrany nemovitosti"]');
     if (!table) return null;
@@ -81,7 +93,7 @@ function getRestrictions() {
 
     rows.forEach(row => {
         const restriction = row.querySelector('td')?.innerText;
-        if(restriction) restrictions.push(restriction);
+        if (restriction) restrictions.push(restriction);
     })
 
     return restrictions;
@@ -103,6 +115,22 @@ function getOtherRecords() {
     return records;
 }
 
+function getSeal(): string {
+    // summary="Otisk úředního razítka"
+    const sealElement = document.querySelector('p.plomba');
+    if (!sealElement) return null;
+
+    // seal is paragraph with class "plomba" conaining text and link. Link is without domain, so we need to add it
+    const domain = "https://nahlizenidokn.cuzk.cz";
+    const sealLink = sealElement.querySelector('a');
+    const sealUrl = sealLink ? domain + sealLink.getAttribute('href') : null;
+
+    // return seal as is with corrected link
+    const seal = sealElement.innerHTML.replace(/href="([^"]+)"/, `href="${sealUrl}" target="_blank"`);
+
+    return seal;
+}
+
 function gatherParcelData() {
     const landInfo = getLandInfo();
     const owners = getOwners();
@@ -110,14 +138,18 @@ function gatherParcelData() {
     const bpej = getBPEJ();
     const restrictions = getRestrictions();
     const otherRecords = getOtherRecords();
+    const seal = getSeal();
+    const duplicate = getOwnerDuplicate();
 
     return {
         ...landInfo,
         owners,
+        duplicate,
         protection,
         bpej,
         restrictions,
         otherRecords,
+        seal,
     }
 }
 
