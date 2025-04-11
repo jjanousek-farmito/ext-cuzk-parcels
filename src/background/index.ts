@@ -96,10 +96,7 @@ chrome.runtime.onMessage.addListener(async function (msg, sender, sendResponse) 
             // open cuzk tabs for each parcel and store tabId in parcel
             const registeredParcels = parcels.map((parcel: Parcel) => {
                 // check if parcel is already registered
-                if (parcel.cuzk && parcel.cuzk.tabId) {
-                    console.log("[CRM_CUZK]: Parcel already registered:", parcel);
-                    return parcel;
-                } else if (!parcel.url) {
+                if (!parcel.url) {
                     console.log("[CRM_CUZK]: Parcel has no URL:", parcel);
                     parcel.validity = Validity.NOT_FOUND;
                     return parcel;
