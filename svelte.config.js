@@ -5,10 +5,6 @@ export default {
     // for more information about preprocessors
     preprocess: vitePreprocess(),
     alias: {
-        $components: "src/components",
-        $stores: "src/stores",
-        $utils: "src/utils",
-        $assets: "src/assets",
         "@/*": "src/*",
     },
     external: [

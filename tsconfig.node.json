@@ -6,13 +6,8 @@
         "module": "ESNext",
         "moduleResolution": "bundler",
         "strict": true,
-        // "noEmit": true,
-        "emitDeclarationOnly": true, // use this field instead of "noEmit"
+        "emitDeclarationOnly": true,
         "noUncheckedSideEffectImports": true
     },
-    "include": [
-        "vite.config.ts",
-        "src/manifest.config.ts",
-        "package.json"
-    ]
+    "include": ["vite.config.ts", "src/manifest.config.ts", "package.json"]
 }

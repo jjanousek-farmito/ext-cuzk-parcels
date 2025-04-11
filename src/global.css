@@ -1,7 +1,0 @@
-@import "./tailwind.css";
-
-@layer {
- button {
-  @apply inline-flex cursor-pointer;
- }
-}
