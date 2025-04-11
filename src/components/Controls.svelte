@@ -49,7 +49,7 @@
 		setTimeout(() => {
 			initialized = true;
 		}, 1000);
-		parcels = opportunities.update((o) => {
+		opportunities.update((o) => {
 			o[id] = parcels.map((parcel) => {
 				console.log("parcel", parcel);
 				parcel.validity = null;
@@ -98,6 +98,10 @@
 
 		parcels = o[id];
 		if (!initialized) initialized = true;
+
+		if(!parcels) {
+			return;
+		}
 
 		applyValidationResults(parcels);
 
