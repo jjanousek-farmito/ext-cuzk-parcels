@@ -16,16 +16,16 @@ Rozšíření pro prohlížeč Chrome, které usnadňuje kontrolu a vyhledáván
 
 1. Stáhněte si poslední verzi rozšíření z repozitáře na GitHubu [zde](https://github.com/jjanousek-farmito/ext-cuzk-parcels/releases)
     1. Vyberte nejnovější verzi rozšíření podle čísla verze
-    2. Stáhněte si soubor `ext-cuzk-pv.zip`
-3. Rozbalte stažený soubor do libovolného adresáře na vašem počítači.
+    2. Stáhněte si soubor `vX.X.X.zip` kde `X.X.X` je číslo verze
+2. Rozbalte stažený soubor do libovolného adresáře na vašem počítači.
     1. Složku si uložte na bezpečné místo, abyste ji mohli později použít.
-5. Otevřete stránku správy rozšíření na adrese `chrome://extensions`.
-6. Povolte režim pro vývojáře kliknutím na přepínač vedle položky `Režim pro vývojáře` v pravém horním rohu.
-7. Klepněte na tlačítko `Load Unpacked` v levém horním rohu.
-8. Vyberte adresář `ext-cuzk-pv` (nebo jiný název, který jste použili při rozbalení) a klikněte na `Select Folder`.
-9. Rozšíření by se mělo nyní načíst a zobrazit na stránce správy rozšíření.
-10. Pokud chcete rozšíření aktualizovat, stačí stáhnout novou verzi a opakovat kroky 3-9.
-11. Složku `ext-cuzk-pv` musíte mít stále na disku, jinak rozšíření nebude fungovat. Pokud ji odstraníte, rozšíření se odinstaluje
+3. Otevřete stránku správy rozšíření na adrese `chrome://extensions`.
+4. Povolte režim pro vývojáře kliknutím na přepínač vedle položky `Režim pro vývojáře` v pravém horním rohu.
+5. Klepněte na tlačítko `Load Unpacked` v levém horním rohu.
+6. Vyberte adresář `ext-cuzk-pv` (nebo jiný název, který jste použili při rozbalení) a klikněte na `Select Folder`.
+7. Rozšíření by se mělo nyní načíst a zobrazit na stránce správy rozšíření.
+8.  Pokud chcete rozšíření aktualizovat, stačí stáhnout novou verzi a opakovat kroky 3-9.
+9.  Složku `ext-cuzk-pv` musíte mít stále na disku, jinak rozšíření nebude fungovat. Pokud ji odstraníte, rozšíření se odinstaluje
 
 ## Development
 

@@ -4,9 +4,17 @@ import { svelte } from "@sveltejs/vite-plugin-svelte";
 import tailwindcss from "@tailwindcss/vite"
 import { defineConfig } from "vite";
 import manifest from "./src/manifest.config";
+import packageJson from "./package.json";
+
+// Convert from Semver (example: 0.1.0-beta6)
+const [major, minor, patch] = packageJson.version
+    // can only contain digits, dots, or dash
+    .replace(/[^\d.-]+/g, "")
+    // split into version parts
+    .split(/[.-]/);
 
 // https://vitejs.dev/config/
-export default defineConfig({
+export default defineConfig(({mode}) => ({
     plugins: [svelte({ emitCss: false }), tailwindcss(), crx({ manifest })],
     resolve: {
         alias: [{ find: "@", replacement: resolve(__dirname, "./src/") }]
@@ -21,4 +29,8 @@ export default defineConfig({
             clientPort: 5173,
         },
     },
-});
+    build: {
+        outDir: mode === "development" ? "dist" : `v${major}.${minor}.${patch}`
+    }
+
+    }));
