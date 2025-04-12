@@ -1,4 +1,5 @@
 import { Validity, type Parcel } from "@/model/parcel";
+import { cuzkLoginStatus } from "@/storage";
 
 export function setRowsId(rows: HTMLTableRowElement[]) {
     //remove headers
@@ -9,7 +10,7 @@ export function setRowsId(rows: HTMLTableRowElement[]) {
     }
 }
 
-export function getTableRows(includeRemoved: boolean=false): HTMLTableRowElement[] | [] {
+export function getTableRows(includeRemoved: boolean = false): HTMLTableRowElement[] | [] {
     const table = document.querySelector("form[action$='/update-parcely'] table");
     if (!table) return []
 
@@ -106,19 +107,19 @@ export function parseRowData(row: HTMLTableRowElement): Parcel {
     }
 }
 
-export function highlightParcelRow(parcel: Parcel, validity: Validity, detail: string) {
+export function addParcelRowHighlight(parcel: Parcel, validity: Validity, detail: string) {
     if (!parcel) return;
     if (!parcel.parcelNumber) {
-        console.log("Parcel number not found:", parcel);
+        console.log("[CRM_CUZK]: Parcel number not found:", parcel);
         return;
     }
     if (!validity) {
-        console.log("Validity not found for parcel:", parcel.parcelNumber);
+        console.log("[CRM_CUZK]: Validity not found for parcel:", parcel.parcelNumber);
         return;
     }
     const row = document.getElementById(parcel.parcelNumber) as HTMLTableRowElement;
     if (!row) {
-        console.log("Row not found for parcel:", parcel.parcelNumber);
+        console.log("[CRM_CUZK]: Row not found for parcel:", parcel.parcelNumber);
         return;
     }
 
@@ -153,12 +154,12 @@ export function highlightParcelRow(parcel: Parcel, validity: Validity, detail: s
 export function removeParcelRowHighlight(parcel: Parcel) {
     if (!parcel) return;
     if (!parcel.parcelNumber) {
-        console.log("Parcel number not found:", parcel);
+        console.log("[CRM_CUZK]: Parcel number not found:", parcel);
         return;
     }
     const row = document.getElementById(parcel.parcelNumber) as HTMLTableRowElement;
     if (!row) {
-        console.log("Row not found for parcel:", parcel.parcelNumber);
+        console.log("[CRM_CUZK]: Row not found for parcel:", parcel.parcelNumber);
         return;
     }
     if (row.classList.contains("highlighted")) {
@@ -195,24 +196,33 @@ export function validationDetailReport(parcel: Parcel): string {
     const header = headerRow("Parcela", "CRM", "CUZK", "Status");
     const crm = parcel.crm;
     const cuzk = parcel.cuzk;
-    const owners = cuzk.owners.map(({ owner }: { owner: string }) => owner).join("\n");
+    console.log("[CRM_CUZK]: Validation detail report:", cuzk);
+
+    const owners = cuzk.owners?.map(({ owner }: { owner: string }) => owner).join("<br/>") || "";
+    const FAIL = "<strong>FAIL</strong>";
+    const OK = "OK";
     const body =
-        bodyRow("Parcela", crm.parcelNumber, cuzk.parcelNumber, detail.parcelNumber ? "OK" : "FAIL") +
-        bodyRow("LV", crm.lv, cuzk.lv, detail.lv ? "OK" : "FAIL") +
-        bodyRow("Vlastník", crm.owner, owners, detail.owner ? "OK" : "FAIL") +
-        bodyRow("Plocha", crm.area, cuzk.area, detail.area ? "OK" : "FAIL") +
+        bodyRow("Parcela", crm.parcelNumber, cuzk.parcelNumber, detail.parcelNumber ? OK : FAIL) +
+        bodyRow("LV", crm.lv, cuzk.lv, detail.lv ? OK : FAIL) +
+        bodyRow("Vlastník", crm.owner, owners, detail.owner ? OK : FAIL) +
+        bodyRow("Plocha", crm.area, cuzk.area, detail.area ? OK : FAIL) +
 
         (cuzk.duplicate ?
             headerRowSpan("Duplicitní zápis vlastnictví") +
             bodyRowSpan(cuzk.duplicate ? "<strong>DUPLICITA</strong>" : "")
             : "") +
 
-        (detail.otherRecords.length > 0 ?
+        (detail.mismatch?.length > 0 ?
+            headerRowSpan("Nesoulady") +
+            detail.mismatch.map((record: string) => bodyRowSpan(record)).join("")
+            : "") +
+
+        (detail.otherRecords?.length > 0 ?
             headerRowSpan("Ostatní zápisy") +
             detail.otherRecords.map((record: string) => bodyRowSpan(record)).join("")
             : "") +
 
-        (detail.restrictionsRecords.length > 0 ?
+        (detail.restrictionsRecords?.length > 0 ?
             headerRowSpan("Omezení vlastnického práva") +
             detail.restrictionsRecords.map((record: string) => bodyRowSpan(record)).join("")
             : "") +
@@ -254,17 +264,35 @@ export function removeGroupHeaders() {
     headers.forEach(header => header.remove());
 }
 
-export async function checkParcels(parcels: Parcel[]) {
+export async function openCuzkParcels(parcels: Parcel[]) {
     messageToSW({
         type: "crm-check-parcels",
         data: parcels
     });
 }
 
-export async function registerParcels(parcels: Parcel[]) {
+export function registerParcels(): Parcel[] {
+    const parcels = getTableRows(false).map(parseRowData);
     messageToSW({
         type: "crm-register-parcels",
         data: parcels
+    });
+
+    return parcels
+}
+
+export function cuzkLogin() {
+
+    if (Boolean(Number(import.meta.env.VITE_OFFLINE_MODE))) {
+        console.log();
+
+        console.log("[CRM_CUZK]: CUZK login is disabled in offline mode");
+        cuzkLoginStatus.set(true);
+        return;
+    }
+
+    messageToSW({
+        type: "cuzk-login",
     });
 }
 
@@ -274,15 +302,13 @@ export function closeCuzkCards() {
     });
 }
 
-export function applyValidationResults(parcels: Parcel[]) {
+export function applyValidations(parcels: Parcel[]) {
     parcels.forEach((parcel) => {
-        const validationReport = validationDetailReport(parcel);
-        parcel.validity && highlightParcelRow(parcel, parcel.validity, validationReport);
-    });
-}
-
-export function removeValidations() {
-    messageToSW({
-        type: "crm-remove-validations",
+        if (!parcel.validity) {
+            removeParcelRowHighlight(parcel);
+        } else if (parcel.validity) {
+            const validationReport = validationDetailReport(parcel);
+            addParcelRowHighlight(parcel, parcel.validity, validationReport);
+        }
     });
 }

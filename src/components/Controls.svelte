@@ -8,32 +8,31 @@
 		BetweenHorizonalStart,
 		Table,
 		Loader,
+		LogIn,
 	} from "lucide-svelte";
 
 	import { Button } from "@/components/ui/button";
 	import { Badge } from "@/components/ui/badge";
-	import { Card, CardContent } from "@/components/ui/card";
 	import { Separator } from "@/components/ui/separator";
+	import { Card, CardContent } from "@/components/ui/card";
 	import { Switch } from "@/components/ui/switch";
 	import { Label } from "@/components/ui/label";
 	import * as Dialog from "@/components/ui/dialog";
 
-	import CuzkLogin from "./CuzkLogin.svelte";
-
 	import { cuzkLoginStatus, opportunities } from "@/storage";
 	import { Validity } from "@/model/parcel";
 	import {
-		applyValidationResults,
-		checkParcels,
+		applyValidations,
+		openCuzkParcels,
 		closeCuzkCards,
+		cuzkLogin,
 		getOpportunityId,
 		getTableRows,
 		insertGroupHeaders,
 		messageToSW,
+		parseRowData,
 		registerParcels,
 		removeGroupHeaders,
-		removeParcelRowHighlight,
-		removeValidations,
 	} from "@/content/crm/utils";
 
 	let id = getOpportunityId();
@@ -55,37 +54,31 @@
 		message: "",
 	});
 
-	function handleParcelCheck() {
+	// handlers
+	const handleLogin = (e): void => cuzkLogin();
+
+	const handleParcelCheck = (): void => {
 		const confirmation = confirm("Spustit kontrolu parcel?");
 		if (!confirmation) {
 			return;
 		}
 
 		removeGroupHeaders();
-		//removeValidations();
-		checkParcels(parcels);
+		openCuzkParcels(parcels);
 	}
 
-	function handleParcelRegister() {
-		registerParcels(parcels);
+	const handleParcelRegister = () => {
+		registerParcels();
 		setTimeout(() => {
 			initialized = true;
 		}, 1000);
-		opportunities.update((o) => {
-			o[id] = parcels.map((parcel) => {
-				parcel.validity = null;
-				return parcel;
-			});
-			return o;
-		});
-		setTimeout(() => parcels.map(removeParcelRowHighlight), 500);
-	}
+	};
 
-	function handleCloseCuzkCards() {
+	const handleCloseCuzkCards = () => {
 		closeCuzkCards();
-	}
+	};
 
-	function handleLVHeaders() {
+	const handleLVHeaders = () => {
 		showLVHeaders = !showLVHeaders;
 
 		if (showLVHeaders) {
@@ -93,7 +86,7 @@
 		} else {
 			removeGroupHeaders();
 		}
-	}
+	};
 
 	onMount(() => {
 		if (showLVHeaders) {
@@ -123,7 +116,7 @@
 			return;
 		}
 
-		applyValidationResults(parcels);
+		applyValidations(parcels);
 
 		stats.invalid = parcels.filter(
 			(parcel) => parcel.validity === Validity.INVALID,
@@ -141,8 +134,11 @@
 		// parcels = validateParcels(parcels);
 		// apply validation results to each row
 	});
+
+	const unsubAuth = cuzkLoginStatus.subscribe(console.log);
 	onDestroy(() => {
 		unsubOps();
+		unsubAuth();
 	});
 </script>
 
@@ -153,7 +149,10 @@
 		<div class="flex gap-4 flex-wrap w-full">
 			{#if !$cuzkLoginStatus}
 				<div class="grid items-center justify-center w-full">
-					<CuzkLogin />
+					<Button size="sm" onclick={handleLogin}>
+						<LogIn class="w-4 h-4 mr-2" />
+						ČÚZK
+					</Button>
 				</div>
 			{:else}
 				<div class="flex gap-2 flex-wrap">
@@ -189,11 +188,15 @@
 						</div>
 					</Button>
 				</div>
-				<div class="flex gap-2 flex-wrap ml-auto">
-					<div class="flex gap-2 items-center">
-
-						<p class="m-0">Počet parcel: {getTableRows(true)?.length}</p>
-						<p class="m-0">Ke kontrole: {parcels?.length}</p>
+				<div class="flex gap-4 flex-wrap ml-auto items-center">
+					<p class="m-0">
+						Počet parcel: {getTableRows(true)?.length}
+					</p>
+					<Separator orientation="vertical" class="h-4" />
+					<p class="m-0">Ke kontrole: {parcels?.length}</p>
+					<Separator orientation="vertical" class="h-4" />
+					<div class="flex gap-2 flex-wrap ml-auto items-center">
+						<p class="m-0">Kontrola:</p>
 						<Badge variant="destructive" size="sm">
 							<XCircle class="w-4 h-4 mr-1" />
 							{stats.invalid}

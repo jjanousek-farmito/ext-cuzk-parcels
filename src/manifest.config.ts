@@ -31,7 +31,7 @@ export default defineManifest(async (env) => ({
                 "https://test.crm.cmzf.cz/purchase/opportunity/*"
             ],
             js: [
-                "src/content/crm/content.ts"
+                "src/content/crm/index.ts"
             ],
         },
         {
@@ -40,14 +40,14 @@ export default defineManifest(async (env) => ({
             ],
             js: [
                 "src/content/cuzk/auth.ts"
-            ]
+            ],
         },
         {
             matches: [
                 "https://nahlizenidokn.cuzk.gov.cz/ZobrazObjekt.aspx?*"
             ],
             js: [
-                "src/content/cuzk/content.ts"
+                "src/content/cuzk/index.ts"
             ],
         }
     ],

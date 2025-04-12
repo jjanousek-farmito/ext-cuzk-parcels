@@ -59,6 +59,11 @@ export function persistentStore<T>(key: string, initialValue: T, chromeStorageTy
 
 export const cuzkLoginStatus = persistentStore("cuzkLogin", false);
 
+if (import.meta.env.VITE_CUZK_AUTH_BYPASS) {
+    console.log("[CRM_CUZK]: CUZK auth bypass enabled");
+    cuzkLoginStatus.set(true);
+}
+
 type Opportunities = {
     [opportunityId: string]: Parcel[];
 };
@@ -66,9 +71,9 @@ type Opportunities = {
 export const opportunities = persistentStore("opportunities", {} as Opportunities, "local");
 
 const defaultConfig = {
-    cuzkAutoSession: true,
-    autoCloseDelay: 3,
-    autoSessionDelay: 600,
+    cuzkAutoSession: Boolean(import.meta.env.VITE_CUZK_AUTO_SESSION),
+    autoCloseDelay: Number(import.meta.env.VITE_CLOSE_TAB_DELAY),
+    autoSessionDelay: Number(import.meta.env.VITE_CUZK_AUTO_SESSION_DELAY),
 };
 
 export const config = persistentStore("config", defaultConfig, "local");

@@ -28,8 +28,10 @@ function getOwners(): Array<{ owner: string, share: string }> | null {
 
     const owners = [] as Array<{ owner: string, share: string }>;
     rows.forEach(row => {
-        const owner = (row.querySelector('td:nth-child(1)') as HTMLTableCellElement)?.innerText.split(',')[0];
-        const share = (row.querySelector('td:nth-child(2)') as HTMLTableCellElement)?.innerText;
+        const owner = (row.querySelector('td:nth-child(1)') as HTMLTableCellElement)?.innerText.split(',')[0].trim();
+        const share = (row.querySelector('td:nth-child(2)') as HTMLTableCellElement)?.innerText.trim();
+        if (!owner || !share) return;
+
         owners.push({ owner, share });
     });
 
@@ -46,6 +48,27 @@ function getOwnerDuplicate(): boolean {
         return true;
     }
     return false
+}
+
+function getMismatches(): string[] | null {
+    // table.nesoulady
+
+    const table = document.querySelector('table.nesoulady');
+    if (!table) return null;
+    const rows = table.querySelectorAll('tbody > tr');
+
+    // merge two cells into one
+    const mismatches: string[] = [];
+    rows.forEach(row => {
+        const cell = row.querySelector('td:nth-child(1)') as HTMLTableCellElement;
+        const cell2 = row.querySelector('td:nth-child(2)') as HTMLTableCellElement;
+        const mismatch = cell.innerText + " " + cell2.innerHTML;
+        if (mismatch) {
+            mismatches.push(prefixLinkwithDomain(mismatch));
+        }
+    });
+
+    return mismatches;
 }
 
 function getProtection(): string[] | null {
@@ -115,7 +138,7 @@ function getOtherRecords() {
     return records;
 }
 
-function getSeal(): string {
+function getSeal(): string | null {
     // summary="Otisk úředního razítka"
     const sealElement = document.querySelector('p.plomba');
     if (!sealElement) return null;
@@ -126,25 +149,35 @@ function getSeal(): string {
     const sealUrl = sealLink ? domain + sealLink.getAttribute('href') : null;
 
     // return seal as is with corrected link
-    const seal = sealElement.innerHTML.replace(/href="([^"]+)"/, `href="${sealUrl}" target="_blank"`);
+    const seal = prefixLinkwithDomain(sealElement.innerHTML);
 
     return seal;
 }
 
+function prefixLinkwithDomain(htmlString: string) {
+    // Add domain to all links in html string
+    const domain = "https://nahlizenidokn.cuzk.cz";
+    const regex = /href="([^"]+)"/g;
+    return htmlString.replace(regex, `href="${domain}$1" target="_blank"`);
+}
+
+
 function gatherParcelData() {
     const landInfo = getLandInfo();
     const owners = getOwners();
+    const duplicate = getOwnerDuplicate();
+    const mismatch = getMismatches();
     const protection = getProtection();
     const bpej = getBPEJ();
     const restrictions = getRestrictions();
     const otherRecords = getOtherRecords();
     const seal = getSeal();
-    const duplicate = getOwnerDuplicate();
 
     return {
         ...landInfo,
         owners,
         duplicate,
+        mismatch,
         protection,
         bpej,
         restrictions,
@@ -155,7 +188,7 @@ function gatherParcelData() {
 
 function sendParcelData() {
     const landData = gatherParcelData();
-    console.log("Send parcel data:", landData);
+    console.log("[CRM_CUZK]: Send parcel data:", landData);
 
     chrome.runtime.sendMessage({
         type: "cuzk-parcel-data",

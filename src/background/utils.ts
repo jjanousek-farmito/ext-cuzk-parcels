@@ -1,18 +1,10 @@
 import { Validity, type Parcel } from "@/model/parcel";
 import { cuzkLoginStatus, config, opportunities } from "@/storage";
 import { get } from "svelte/store";
+import createAlarm from "./alarm";
 
 export async function sleep(ms: number) {
     return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-function sendDataToTab(tabId: number | undefined) {
-    if (!tabId) {
-        return console.log("[CRM_CUZK]: Tab ID not set");
-    }
-    return function (data: any) {
-        chrome.tabs.sendMessage(tabId, data);
-    }
 }
 
 export function openTab(url: string, active: boolean = true, callback: (tab: any) => void = () => { }) {
@@ -21,18 +13,18 @@ export function openTab(url: string, active: boolean = true, callback: (tab: any
 
 export function closeTab(tab: any) {
     chrome.tabs.remove(tab.id, () => {
-        console.log(`Tab ${tab.id} closed`);
+        console.log(`[CRM_CUZK]: Tab ${tab.id} closed`);
     });
 }
 
-export function closeTabAfterDelay(delay: number) {
+export function closeTabAfterDelay(delay?: number) {
     return (tab: any) => setTimeout(() => {
         closeTab(tab);
     }, delay || get(config).autoCloseDelay * 1000);
 }
 
 export function openCuzk(active: boolean, callback: (tab: any) => void = () => { }) {
-    const URL = "https://nahlizenidokn.cuzk.gov.cz/";
+    const URL = import.meta.env.VITE_CUZK_URL;
     openTab(URL, active, callback);
 }
 
@@ -48,6 +40,7 @@ export function validateParcel(parcel: Parcel): Parcel {
     const lvMatch = compareStrings(parcel.crm.lv, parcel.cuzk?.lv);
     const seal = parcel.cuzk?.seal;
     const duplicate = parcel.cuzk?.duplicate;
+    const mismatch = parcel.cuzk?.mismatch;
 
     const otherRecords = parcel.cuzk?.otherRecords;
     const excludeRecords = [
@@ -65,9 +58,11 @@ export function validateParcel(parcel: Parcel): Parcel {
 
     const hasDiscrepancies =
         !ownerMatch ||
+        duplicate ||
         !areaMatch ||
         !lvMatch ||
         !areaMatch ||
+        mismatch ||
         seal ||
         hasImportantOtherRecords;
 
@@ -87,14 +82,15 @@ export function validateParcel(parcel: Parcel): Parcel {
 
     parcel.validationDetail = {
         owner: ownerMatch,
+        duplicate,
         area: areaMatch,
         parcelNumber: parcelNumberMatch,
         lv: lvMatch,
-        seal,
+        mismatch,
         hasOtherRecords,
         hasImportantOtherRecords,
         hasRestrictions,
-        duplicate,
+        seal,
         // hasProtection,
         // protectionRecords: parcel.cuzk?.protection || [],
         restrictionsRecords: parcel.cuzk?.restrictions || [],
@@ -136,13 +132,12 @@ function compareNames(a: string, b: string): boolean {
 }
 
 export function findOpportunityIdByCuzkTabId(tabId: number, opportunities: { [opportunityId: string]: Parcel[] }) {
-    const opportunityId = Object.entries(opportunities).find(([key, value]) => {
-        const parcels = value as Parcel[];
-        const hasTab = parcels.some((parcel: Parcel) => {
+    const opportunityId = Object.entries(opportunities).find(([opId, opportunityParcels]) => {
+        const hasTab = opportunityParcels.some((parcel: Parcel) => {
             return parcel.cuzk?.tabId === tabId;
         })
         if (hasTab) {
-            return key;
+            return opId;
         }
     })
     if (!opportunityId) return null;
@@ -150,14 +145,16 @@ export function findOpportunityIdByCuzkTabId(tabId: number, opportunities: { [op
 }
 
 export async function cuzkAuth() {
-    openCuzk(false, closeTabAfterDelay(1000));
+    openCuzk(false, closeTabAfterDelay());
     await sleep(1000)
+    console.log("[CRM_CUZK]: CUZK auth:",get(cuzkLoginStatus));
+
 
     if (!get(cuzkLoginStatus)) {
         console.log("[CRM_CUZK]: User is not logged in to CUZK");
         //open cuzk login page
         openCuzk(true);
-        return false
+        return false;
     }
     return true;
 }
@@ -168,4 +165,35 @@ export function updateParcels(opId: number, parcels: Parcel[]) {
         ops[opId] = parcels;
         return ops;
     })
+}
+
+export function initCuzkAlarm(): boolean {
+    //if config cuzkAutoSession is false clear alarm
+    const clearAlarm = () => {
+        console.log("[CRM_CUZK]: CUZK auto session is disabled");
+        chrome.alarms.clear(import.meta.env.VITE_CUZK_LOGIN_ALARM_NAME);
+        return false;
+    }
+
+    if (!get(config).cuzkAutoSession) {
+        return clearAlarm();
+    }
+
+    createAlarm(import.meta.env.VITE_CUZK_LOGIN_ALARM_NAME, () => {
+        // if user disabled auto session, clear alarm on next trigger
+        if (!get(config).cuzkAutoSession) {
+            return clearAlarm();
+        }
+
+        if (!get(cuzkLoginStatus)) {
+            console.log("[CRM_CUZK]: User is not logged in to CUZK");
+            openCuzk(true);
+            return false;
+        }
+
+        console.log("[CRM_CUZK]: CUZK auto session alarm triggered");
+        openCuzk(false, closeTabAfterDelay());
+    });
+
+    return true;
 }

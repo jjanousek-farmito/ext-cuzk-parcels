@@ -3,27 +3,39 @@ import { get } from "svelte/store"
 import { config, cuzkLoginStatus, opportunities } from "@/storage";
 import { Validity, type Parcel } from "@/model/parcel";
 
-import cuzkAutoSession from "./alarm";
-import { closeTab, closeTabAfterDelay, cuzkAuth, findOpportunityIdByCuzkTabId, openTab, updateParcels, validateParcel } from "./utils";
+import createAlarm from "./alarm";
+import { closeTab, closeTabAfterDelay, cuzkAuth, findOpportunityIdByCuzkTabId, initCuzkAlarm, openCuzk, openTab, validateParcel } from "./utils";
 
 console.log("[CRM_CUZK]: Background script loaded");
 
-chrome.runtime.onInstalled.addListener((details) => {
+let cuzkLoginAlarm: chrome.alarms.Alarm | null = null;
+const cuzkLoginAlarmName = "cuzk-login-alarm";
+
+chrome.runtime.onInstalled.addListener(async (details) => {
     if (details.reason !== "install") {
 
         // when login status changes and is true, start auto session
-        cuzkLoginStatus.subscribe((value) => {
-            console.log("[CRM_CUZK]: Login status changed:", value);
-            if (value && get(config).cuzkAutoSession) {
-                console.log("[CRM_CUZK]: Starting auto session for CUZK");
-                cuzkAutoSession();
-            }
+        cuzkLoginStatus.subscribe(async (loginStatusValue) => {
+            console.log("[CRM_CUZK]: Login status changed:", loginStatusValue);
+            // if mode is offline, bypass login status
+            // if (import.meta.env.VITE_OFFLINE_MODE) return import.meta.env.VITE_OFFLINE_MODE;
+
+            // if (!loginStatusValue) {
+            //     console.log("[CRM_CUZK]: CUZK login status is false, stopping auto session");
+            //     chrome.alarms.clear(cuzkLoginAlarmName);
+            //     return
+            // }
+            // //
+            // if (loginStatusValue && get(config).cuzkAutoSession && !cuzkLoginAlarm) {
+            //     console.log("[CRM_CUZK]: Starting auto session for CUZK");
+            //     cuzkLoginAlarm = await createAlarm(cuzkLoginAlarmName, (timestamp) => {
+            //         console.log("[CRM_CUZK]: CUZK auto session alarm triggered:", timestamp);
+            //         openCuzk(false, closeTabAfterDelay());
+            //     });
+            // }
+            initCuzkAlarm();
         })
     }
-
-    opportunities.subscribe((value) => {
-        console.log("[CRM_CUZK_SW]: Opportunities store changed:", value);
-    })
 });
 
 chrome.runtime.onMessage.addListener(async function (msg, sender, sendResponse) {
@@ -35,8 +47,24 @@ chrome.runtime.onMessage.addListener(async function (msg, sender, sendResponse) 
         console.log("[CRM_CUZK]: Registering parcels:", msg.data);
         const opportunityId = msg.id as string;
         opportunities.update((ops) => {
-            // when registering parcels, we need to remove the old ones
-            ops[opportunityId] = msg.data;
+            //if parcels are already registered, do not register them again
+            if (!ops[opportunityId]) {
+                ops[opportunityId] = msg.data;
+            } else {
+                const parcels = ops[opportunityId].map((parcel: Parcel) => {
+                    if (parcel.validity) {
+                        parcel.validity = undefined;
+                        parcel.validationDetail = undefined;
+                    }
+
+                    if (parcel.cuzk) {
+                        parcel.cuzk = { tabId: parcel.cuzk.tabId };
+                    }
+
+                    return parcel;
+                })
+                ops[opportunityId] = parcels;
+            }
             return ops;
         })
     }
@@ -81,9 +109,12 @@ chrome.runtime.onMessage.addListener(async function (msg, sender, sendResponse) 
 
     // open CUZK parcels in new tabs
     if (msg.type === "crm-check-parcels") {
-
-        //check if user is logged in on cuzk if not, stop the process
-        if (!await cuzkAuth()) return false;
+        // expect user to not be logged in to CUZK, so we need to open CUZK login page
+        let isLoggedIn = await cuzkAuth()
+        if (!isLoggedIn) {
+            console.log("[CRM_CUZK]: User is not logged in to CUZK, opening login page");
+            return;
+        }
 
         const opportunityId = msg.id as string;
         const parcels = msg.data;
@@ -111,31 +142,12 @@ chrome.runtime.onMessage.addListener(async function (msg, sender, sendResponse) 
                 return parcel;
             })
             ops[opportunityId] = registeredParcels;
-            console.log("[CRM_CUZK]: Updated parcels:", ops[opportunityId]);
+            console.log("[CRM_CUZK]: crm-check-parcels Updated parcels:", ops[opportunityId]);
 
             return ops;
         })
 
 
-    }
-
-    if(msg.type = "crm-remove-validations") {
-        const opportunityId = msg.id as string;
-        console.log("[CRM_CUZK]: Removing validations for parcels:", opportunityId);
-
-        opportunities.update((ops) => {
-            const parcels = ops[opportunityId] as Parcel[];
-            parcels.forEach((parcel: Parcel) => {
-                if (parcel.validity) {
-                    parcel.validity = undefined;
-                    parcel.validationDetail = undefined;
-                }
-            })
-            ops[opportunityId] = parcels;
-            console.log("[CRM_CUZK]: Updated parcels:", ops[opportunityId]);
-
-            return ops
-        })
     }
 
     // close CUZK parcels tabs
@@ -160,10 +172,14 @@ chrome.runtime.onMessage.addListener(async function (msg, sender, sendResponse) 
 
     }
 
-    if (msg.type === "clear-storage-opportunities") {
+    if (msg.type === "clear-storage") {
         await chrome.storage.session.clear();
-        await chrome.storage.local.remove(["opportunities"]);
+        await chrome.storage.local.remove(["opportunities", "cuzkLoginStatus", "config"]);
         console.log("[CRM_CUZK_SW]: Storage opportunities cleared");
     }
 
+    if (msg.type === "clear-alarms") {
+        await chrome.alarms.clearAll();
+        console.log("[CRM_CUZK_SW]: All alarms cleared");
+    }
 })

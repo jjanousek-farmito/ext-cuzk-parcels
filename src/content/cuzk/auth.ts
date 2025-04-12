@@ -5,7 +5,7 @@ console.log("[CRM_CUZK]: CUZK auth script loaded");
 //DOMContentLoaded event is not fired
 setTimeout(() => {
     auth();
-}, 500);
+}, 200);
 
 function auth() {
     let loginStatus: boolean = isLoggedIn();

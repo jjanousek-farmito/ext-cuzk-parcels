@@ -55,3 +55,32 @@ If you encounter issues with the dev server, try the following:
    - Open the Extension Management page by navigating to `chrome://extensions`.
    - Click the refresh icon next to the extension
 3. restart the dev server
+
+## Extension structure
+
+- service worker
+- content
+- options
+
+
+### Service Worker
+Handles the background tasks and events. It is responsible for managing the extension's lifecycle, handling network requests, and performing background operations.
+
+### Content
+Handles the interaction with the web pages. It can modify the content of the pages, listen for events, and communicate with the background script.
+
+### Options
+Provides a user interface for the extension's options. It allows users to configure the extension's settings and preferences.
+
+## Extension lifecycle
+
+1. **Installation**: The extension is loaded unpacked.
+2. **Activation**:
+    1. CRM: The extension is activated when the user navigates to `/purchase/opportunity/<opportunityId>`
+    2. CUZK.auth:
+        - The extension is activated on any page of the CUZK domain (`nahlizenidokn.cuzk.gov.cz/*`).
+    1. CUZK.parcel:
+        - The extension is activated on any parcel detail page. (Url contains hash, so it is triggered by all /* pages)
+
+## License
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.

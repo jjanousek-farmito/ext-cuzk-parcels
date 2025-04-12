@@ -1,41 +1,38 @@
 import { config } from '@/storage';
-import { closeTabAfterDelay, openCuzk } from './utils';
 import { get } from 'svelte/store';
 
-export default async function () {
+export default async function createAlarm(alarmName: string, callback: (timestamp?: number) => void, options: any) {
+
+    options = options || {
+        periodInMinutes: get(config).autoSessionDelay / 60,
+        delayInMinutes: .30,
+    };
     console.log('[CRM_CUZK]: Alarm module loaded');
 
-    const alarmEnabled = true; // Set to true to enable the alarm
+    const alarm = await chrome.alarms.get(alarmName);
 
+    if (!alarm) {
+        await chrome.alarms.create(alarmName, options);
 
-    if (alarmEnabled) {
-        const alarm = await chrome.alarms.get("cuzk-login-alarm");
+        chrome.alarms.onAlarm.addListener(async (alarm) => {
+            if (alarm.name === alarmName) {
+                const alarmDelay = options.periodInMinutes;
+                console.log('CUZK Login alarm triggered:', alarm);
+                console.log(`Next alarm will trigger in ${alarmDelay} minutes at`, new Date(Date.now() + alarmDelay * 60 * 1000));
 
-        if (!alarm) {
-            await chrome.alarms.create('cuzk-login-alarm', {
-                delayInMinutes: .5,
-                periodInMinutes: 1,
+                callback(Date.now());
+            }
+        });
 
-            });
-        }
+        chrome.runtime.onSuspend.addListener(() => {
+            console.log('Alarm suspended');
+            chrome.alarms.clear(alarmName);
+        });
         console.log('Alarm created at ', new Date());
-
-        console.log('Alarm will trigger in 30 seconds at', new Date(Date.now() + 30 * 1000));
+    } else {
+        console.log('Alarm already exists:', alarm);
+        console.log('Next alarm will trigger in', (alarm.scheduledTime - Date.now()) / 1000, 'seconds at', new Date(alarm.scheduledTime));
     }
 
-    chrome.alarms.onAlarm.addListener(async (alarm) => {
-        const alarmDelay = get(config).autoSessionDelay;
-        if (alarm.name === 'cuzk-login-alarm') {
-            console.log('CUZK Login alarm triggered:', alarm);
-            console.log(`Next alarm will trigger in ${alarmDelay / 60} minutes at`, new Date(Date.now() + alarmDelay * 1000));
-
-            // Open CUZK in a new tab
-            openCuzk(false, closeTabAfterDelay(2000))
-        }
-    });
-
-    chrome.runtime.onSuspend.addListener(() => {
-        console.log('Alarm suspended');
-    });
-
+    return alarm;
 }

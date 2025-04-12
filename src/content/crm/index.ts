@@ -3,12 +3,11 @@ import "@/global.css";
 import "./styles.css";
 
 import Controls from "@/components/Controls.svelte";
-import { parseRowData, validationDetailReport } from "./utils";
+import { registerParcels, validationDetailReport } from "./utils";
 import { getOpportunityId, getTableRows, setRowsId } from "./utils";
 
 import type { Parcel } from "@/model/parcel";
 import { opportunities } from "@/storage";
-import { get } from "svelte/store";
 
 let id: number;
 
@@ -23,10 +22,9 @@ function init() {
         console.log("[CRM_CUZK]: Invalid opportunity ID", id);
         return;
     }
-
-    // get the table rows
     const rows = getTableRows();
-    const parcels: Parcel[] = rows.map(parseRowData);
+    // get the table rows
+    const parcels = [] || registerParcels();
 
     // render the controls
     console.log("[CRM_CUZK]: Rendering controls with parcels:", parcels);

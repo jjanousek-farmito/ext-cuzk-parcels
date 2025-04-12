@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Separator as SeparatorPrimitive } from "bits-ui";
-	import { cn } from "@/utils.js";
+	import { cn } from "@/utils";
 
 	type $$Props = SeparatorPrimitive.Props;
 
@@ -14,7 +14,7 @@
 	class={cn(
 		"bg-border shrink-0",
 		orientation === "horizontal" ? "h-[1px] w-full" : "min-h-full w-[1px]",
-		className
+		className,
 	)}
 	{orientation}
 	{decorative}
