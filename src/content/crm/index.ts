@@ -24,7 +24,7 @@ function init() {
     }
     const rows = getTableRows();
     // get the table rows
-    const parcels = [] || registerParcels();
+    const parcels: Parcel[] = [];
 
     // render the controls
     console.log("[CRM_CUZK]: Rendering controls with parcels:", parcels);

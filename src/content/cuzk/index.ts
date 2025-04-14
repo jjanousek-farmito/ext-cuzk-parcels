@@ -24,18 +24,20 @@ function getOwners(): Array<{ owner: string, share: string }> | null {
     const table = document.querySelector('table.vlastnici');
     if (!table) return null;
 
-    const rows = table.querySelectorAll('tr');
+    const rows = Array.from(table.querySelectorAll('tr'), row => row.querySelectorAll('td') || []);
 
-    const owners = [] as Array<{ owner: string, share: string }>;
-    rows.forEach(row => {
-        const owner = (row.querySelector('td:nth-child(1)') as HTMLTableCellElement)?.innerText.split(',')[0].trim();
-        const share = (row.querySelector('td:nth-child(2)') as HTMLTableCellElement)?.innerText.trim();
-        if (!owner || !share) return;
+    const owners = rows.reduce((acc, rowValue) => {
+        const [ownerText, shareText] = rowValue;
+        if (!ownerText) return acc;
 
-        owners.push({ owner, share });
-    });
+        const owner = ownerText?.innerText.split(',')[0].trim()
+        const share = shareText?.innerText.trim();
 
-    return owners;
+        acc.push({ owner, share });
+        return acc
+    }, [] as Array<{ owner: string, share: string }>);
+
+    return owners
 }
 
 function getOwnerDuplicate(): boolean {
@@ -198,4 +200,4 @@ function sendParcelData() {
 
 setTimeout(() => {
     sendParcelData();
-}, 500);
+}, 1000);
