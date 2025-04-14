@@ -10,6 +10,8 @@
     "scripts": {
         "dev": "vite",
         "build": "vite build",
+        "build:zip": "vite build",
+        "postbuild:zip": "bash ./compress.sh",
         "check": "svelte-check --tsconfig ./tsconfig.json && tsc -p tsconfig.node.json"
     },
     "devDependencies": {

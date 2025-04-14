@@ -13,8 +13,18 @@ const [major, minor, patch] = packageJson.version
     // split into version parts
     .split(/[.-]/);
 
+const buildConfig = (mode: string) => (mode === "development" ? {
+    outDir: "dist",
+    emptyOutDir: false,
+    sourcemap: true,
+} : {
+    outDir: `v${major}.${minor}.${patch}`,
+    emptyOutDir: true,
+    sourcemap: false,
+});
+
 // https://vitejs.dev/config/
-export default defineConfig(({mode}) => ({
+export default defineConfig(({ mode }) => ({
     plugins: [svelte({ emitCss: false }), tailwindcss(), crx({ manifest })],
     resolve: {
         alias: [{ find: "@", replacement: resolve(__dirname, "./src/") }]
@@ -29,8 +39,6 @@ export default defineConfig(({mode}) => ({
             clientPort: 5173,
         },
     },
-    build: {
-        outDir: mode === "development" ? "dist" : `v${major}.${minor}.${patch}`
-    }
+    build: buildConfig(mode),
 
-    }));
+}));
