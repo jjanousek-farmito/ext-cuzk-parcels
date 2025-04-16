@@ -30,7 +30,7 @@
 }
 
 .highlighted.bg-warning-light {
-    @apply bg-yellow-100;
+    @apply bg-yellow-100!;
 }
 .highlighted.bg-danger-light {
     @apply bg-red-300!;

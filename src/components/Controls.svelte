@@ -65,12 +65,15 @@
 
 		removeGroupHeaders();
 		openCuzkParcels(parcels);
-	}
+	};
 
 	const handleParcelRegister = () => {
+		if (showLVHeaders) handleLVHeaders();
 		registerParcels();
 		setTimeout(() => {
 			initialized = true;
+
+			handleLVHeaders();
 		}, 1000);
 	};
 
