@@ -95,7 +95,7 @@
 								</h3>
 								<Separator orientation="vertical" class="h-4" />
 								<p class="text-muted-foreground text-sm">
-									{parcels[0].owner}
+									{parcels[0]?.owner ?? "Neznámý vlastník"}
 								</p>
 								<Separator orientation="vertical" class="h-4" />
 								<p class="text-muted-foreground text-sm">
