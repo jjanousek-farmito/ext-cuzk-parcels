@@ -8,9 +8,6 @@ import { closeTab, closeTabAfterDelay, cuzkAuth, findOpportunityIdByCuzkTabId, i
 
 console.log("[CRM_CUZK]: Background script loaded");
 
-let cuzkLoginAlarm: chrome.alarms.Alarm | null = null;
-const cuzkLoginAlarmName = "cuzk-login-alarm";
-
 chrome.runtime.onInstalled.addListener(async (details) => {
     if (details.reason !== "install") {
 

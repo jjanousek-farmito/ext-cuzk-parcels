@@ -33,7 +33,7 @@
 		parseRowData,
 		registerParcels,
 		removeGroupHeaders,
-	} from "@/content/crm/utils";
+	} from "src/content/crm/utils";
 
 	let id = getOpportunityId();
 	let { parcels = [] } = $props();

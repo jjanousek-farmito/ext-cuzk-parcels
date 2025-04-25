@@ -3,7 +3,7 @@
 	import { config, opportunities } from "@/storage";
 	import { Label } from "./ui/label";
 	import { Button } from "./ui/button";
-	import { messageToSW } from "@/content/crm/utils";
+	import { messageToSW } from "src/content/crm/utils";
 	import { onDestroy } from "svelte";
 	import * as Accordion from "./ui/accordion";
 	import { Separator } from "./ui/separator";
