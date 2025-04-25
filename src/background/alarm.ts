@@ -1,11 +1,12 @@
 import { config } from '@/storage';
 import { get } from 'svelte/store';
 
-export default async function createAlarm(alarmName: string, callback: (timestamp?: number) => void, options: any) {
+export default async function createAlarm(alarmName: string, callback: (timestamp?: number) => void, options?: chrome.alarms.AlarmCreateInfo) {
 
-    options = options || {
+    options = {
         periodInMinutes: get(config).autoSessionDelay / 60,
         delayInMinutes: .30,
+        ...options,
     };
     console.log('[CRM_CUZK]: Alarm module loaded');
 
