@@ -1,7 +1,7 @@
 {
     "name": "cuzk-parcels-check",
     "description": "CMZF Parcel Check on CUZK",
-    "version": "1.2.1",
+    "version": "1.2.2",
     "type": "module",
     "repository": {
         "type": "git",
