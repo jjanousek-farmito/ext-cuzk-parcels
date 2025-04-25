@@ -63,17 +63,18 @@
 			return;
 		}
 
-		removeGroupHeaders();
+		handleParcelRegister();
 		openCuzkParcels(parcels);
 	};
 
 	const handleParcelRegister = () => {
-		if (showLVHeaders) handleLVHeaders();
-		registerParcels();
+		const initStateHeaders = Boolean(showLVHeaders);
+		if (initStateHeaders) handleLVHeaders();
+		parcels = registerParcels();
 		setTimeout(() => {
 			initialized = true;
 
-			handleLVHeaders();
+			if(initStateHeaders) handleLVHeaders();
 		}, 1000);
 	};
 
