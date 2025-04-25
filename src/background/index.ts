@@ -1,10 +1,7 @@
-import { get } from "svelte/store"
-
-import { config, cuzkLoginStatus, opportunities } from "@/storage";
+import { cuzkLoginStatus, opportunities } from "@/storage";
 import { Validity, type Parcel } from "@/model/parcel";
 
-import createAlarm from "./alarm";
-import { closeTab, closeTabAfterDelay, cuzkAuth, findOpportunityIdByCuzkTabId, initCuzkAlarm, openCuzk, openTab, validateParcel } from "./utils";
+import { closeTab, cuzkAuth, findOpportunityIdByCuzkTabId, initCuzkAlarm, openTab, validateParcel } from "./utils";
 
 console.log("[CRM_CUZK]: Background script loaded");
 
@@ -19,7 +16,7 @@ chrome.runtime.onInstalled.addListener(async (details) => {
     }
 });
 
-chrome.runtime.onMessage.addListener(async function (msg, sender, sendResponse) {
+chrome.runtime.onMessage.addListener(async function (msg, sender) {
     if (msg.type === "cuzk-login") {
         await cuzkAuth()
     }
