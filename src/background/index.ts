@@ -14,22 +14,6 @@ chrome.runtime.onInstalled.addListener(async (details) => {
         // when login status changes and is true, start auto session
         cuzkLoginStatus.subscribe(async (loginStatusValue) => {
             console.log("[CRM_CUZK]: Login status changed:", loginStatusValue);
-            // if mode is offline, bypass login status
-            // if (import.meta.env.VITE_OFFLINE_MODE) return import.meta.env.VITE_OFFLINE_MODE;
-
-            // if (!loginStatusValue) {
-            //     console.log("[CRM_CUZK]: CUZK login status is false, stopping auto session");
-            //     chrome.alarms.clear(cuzkLoginAlarmName);
-            //     return
-            // }
-            // //
-            // if (loginStatusValue && get(config).cuzkAutoSession && !cuzkLoginAlarm) {
-            //     console.log("[CRM_CUZK]: Starting auto session for CUZK");
-            //     cuzkLoginAlarm = await createAlarm(cuzkLoginAlarmName, (timestamp) => {
-            //         console.log("[CRM_CUZK]: CUZK auto session alarm triggered:", timestamp);
-            //         openCuzk(false, closeTabAfterDelay());
-            //     });
-            // }
             initCuzkAlarm();
         })
     }
