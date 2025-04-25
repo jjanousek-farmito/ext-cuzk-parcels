@@ -70,7 +70,10 @@ type Opportunities = {
 
 export const opportunities = persistentStore("opportunities", {} as Opportunities, "local");
 
+export const assets = persistentStore("assets", {} as Opportunities, "local");
+
 const defaultConfig = {
+    cuzkAutoSessionAlarmName: String(import.meta.env.VITE_CUZK_AUTO_SESSION_NAME),
     cuzkAutoSession: Boolean(import.meta.env.VITE_CUZK_AUTO_SESSION),
     autoCloseDelay: Number(import.meta.env.VITE_CLOSE_TAB_DELAY),
     autoSessionDelay: Number(import.meta.env.VITE_CUZK_AUTO_SESSION_DELAY),
